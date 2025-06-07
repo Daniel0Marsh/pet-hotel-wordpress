@@ -26,9 +26,24 @@ Create a file named docker-compose.yml with the following content:
 
 ```bash
 services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppassword
+      WORDPRESS_DB_NAME: wpdb
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+    restart: always
+    depends_on:
+      - db
+    command: sh -c "sleep 20 && docker-entrypoint.sh apache2-foreground"
+
   db:
     image: mysql:5.7
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword    # Change this password
       MYSQL_DATABASE: wpdb                  # Database name for this project
@@ -36,26 +51,10 @@ services:
       MYSQL_PASSWORD: wppassword            # Database user password
     volumes:
       - db_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-
-  wordpress:
-    image: wordpress:latest
-    depends_on:
-      - db
-    ports:
-      - "8000:80"                          # Change if running multiple projects
-    environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_USER: wpuser
-      WORDPRESS_DB_PASSWORD: wppassword
-      WORDPRESS_DB_NAME: wpdb
-    volumes:
-      - wordpress_data:/var/www/html
+    restart: always
 
 volumes:
   db_data:
-  wordpress_data:
 ```
 Tip: Change the passwords and database names to something unique per project.
 
